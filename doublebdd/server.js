@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const mysql = require('mysql');
+const sqlite3 = require('sqlite3').verbose();
 const bodyparser = require ('body-parser');
 app.use(express.static('public'));
 // Faire la connexion par le fichier qui se trouve ici
