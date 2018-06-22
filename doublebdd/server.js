@@ -3,8 +3,8 @@ const app = express();
 const mysql = require('mysql');
 const bodyparser = require ('body-parser');
 app.use(express.static('public'));
-
-// Création de la connexion de mysql avec le site
+// Faire la connexion par le fichier qui se trouve ici
+// Emplacement connection au serveur ( a changer )
 let connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -21,7 +21,7 @@ app.set('view engine', 'slm');
 
 // Définition de la route racine
 app.get("/", function (req, res) {
-    //recup de la liste des posts
+    //recuperation liste postes ( a changer ?)
     let sqlListPost = "SELECT titre,corps,DATE_FORMAT(date_Post,'%d/%m/%Y') AS date_formated,id_Post FROM Post";
     connection.query(sqlListPost, function select(error, results, fields) {
         if (error) {
@@ -42,7 +42,7 @@ app.get("/", function (req, res) {
     });
 });
 
-// Suppression des posts
+// Suppression des posts ( a changer ?)
 app.post("/", function (req, res) {
     console.log('del: ' + req.body.del);
     console.log('aff:' +req.body.display);
@@ -61,7 +61,7 @@ app.get("/addpost", function (req, res) {
     res.render("addpost");
 });
 
-// Ajout d un post
+// Ajout d un post ( a changer ?)
 
  app.post("/addpost", function (req, res) {
     /*console.log(req.body.titre);
@@ -82,7 +82,7 @@ app.get("/addpost", function (req, res) {
     })
  
  module.exports = gimme;
-//Si on clique sur un post, on l'affiche dans la nouvelle page "read"
+//Si on clique sur un post, on l'affiche dans la nouvelle page "read" ( a changer ?)
 app.get('/read/:id',function (req, res){
     let sqlAffPost = "SELECT titre,corps,DATE_FORMAT(date_Post,'%d/%m/%Y') AS date_formated,id_Post FROM Post WHERE id_Post = "+req.params.id;
     connection.query(sqlAffPost, function select(error, results, fields) {
