@@ -1,15 +1,15 @@
 const express = require('express');
 const app = express();
 const sqlite3 = require('sqlite3').verbose();
-const bodyparser = require ('body-parser');
+const bodyparser = require('body-parser');
 app.use(express.static('public'));
 
 //Connection a changer avec la version Sqlite
-let connection = mysql.createConnection({
-    host: 'sql7.freemysqlhosting.net',
-    user: 'sql7244047',
-    password: 'T83wmYfmfZ',
-    database: 'sql7244047'
+let db = new sqlite3.Database('./blog', sqlite3.OPEN_READWRITE, (err) => {
+    if (err) {
+        console.error(err.message);
+    }
+    console.log('Connected to blog database.');
 });
 //Utilisation de body-parser par le serveur
 app.use(bodyparser.urlencoded({
@@ -22,44 +22,48 @@ app.set('view engine', 'slm');
 // Définition de la route racine
 app.get("/", function (req, res) {
     //recup de la liste des posts ( a changer )
-    let sqlListPost = "SELECT titre,corps,DATE_FORMAT(date_Post,'%d/%m/%Y') AS date_formated,id_Post FROM Post ORDER BY id_Post DESC";
-    connection.query(sqlListPost, function select(error, results, fields) {
-        if (error) {
-            console.log(error);
-            //connection.end();
-            return;
-        }
-        if (results.length > 0) {
-            //console.log(results);
-            res.render("index", {
-                listPost: results
-            });
-        } else {
-            console.log("Pas de données");
-            res.render('index');
-        }
-        //connection.end();
+    let sqlListPost = "SELECT titre,corps, date_Post AS date_formated,id_Post FROM Post ORDER BY id_Post DESC";
+    db.serialize(() => {
+        db.all(sqlListPost, (err, row) => {
+            if (err) {
+                console.error(err.message);
+                return;
+            }
+            if (row.length > 0) {
+                //console.log(results);
+                res.render("index", {
+                    listPost: row
+                });
+            } else {
+                console.log("Pas de données");
+                res.render('index');
+            }
+        });
     });
 });
 
 // Suppression des posts ( a changer)
 app.post("/", function (req, res) {
     console.log('del: ' + req.body.del);
-    console.log('addcomment: ' + req.body.addcomment);
     if (req.body.del) {
         let sqlDeleteComm = 'DELETE FROM Commentaire WHERE id_Post=' + req.body.del + ';';
         let sqlDeletePost = 'DELETE FROM Post WHERE id_Post=' + req.body.del + ';';
-        connection.query(sqlDeleteComm, function (error) {
-            if (error) {
-                console.log(error);
-                return;
-            }
-            connection.query(sqlDeletePost, function (error) {
-                if (error) {
-                    console.log(error);
+
+        db.serialize(() => {
+            db.all(sqlDeleteComm, (err, row) => {
+                if (err) {
+                    console.error(err.message);
                     return;
                 }
-                res.redirect("/");
+                db.serialize(() => {
+                    db.all(sqlDeletePost, (err, row) => {
+                        if (err) {
+                            console.error(err.message);
+                            return;
+                        }
+                        res.redirect("/");
+                    });
+                });
             });
         });
     }
@@ -103,12 +107,12 @@ app.post("/addcomment/:id", function (req, res) {
     });
 });
 
- //Test unitaire 
-  var gimme =  connection.query(function(error, results, fields){
-        return connection.state;
-    })
- 
- module.exports = gimme;
+//Test unitaire 
+/*var gimme = connection.query(function (error, results, fields) {
+    return connection.state;
+})
+
+module.exports = gimme; */
 
 //Si on clique sur un post, on l'affiche dans la nouvelle page "read" ( a changer )
 app.get('/read/:id', function (req, res) {
