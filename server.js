@@ -79,14 +79,16 @@ app.get("/addpost", function (req, res) {
 app.post("/addpost", function (req, res) {
     /*console.log(req.body.titre);
     console.log(req.body.corps);*/
-    let sqlCreatePost = 'INSERT INTO Post (titre,corps,date_Post,id_User) VALUES("' + req.body.titre + '","' + req.body.corps + '",NOW(),1)';
-    connection.query(sqlCreatePost, function (error, results, fields) {
-        if (error) {
-            console.log(error);
+    let sqlCreatePost = 'INSERT INTO Post (titre,corps,date_Post,id_User) VALUES("' + req.body.titre + '","' + req.body.corps + '",date(\'now\'),1)';
+    db.serialize(()=> {
+        db.all(sqlCreatePost, function (err, row) {
+        if (err) {
+            console.log(err.message);
             return;
         }
         res.redirect("/");
-    });
+        })
+    })   
 });
 
 app.get("/addcomment/:id", function (req, res) {
@@ -97,14 +99,16 @@ app.get("/addcomment/:id", function (req, res) {
 });
 // Morceau pour ajouter un commentaire ( a changer )
 app.post("/addcomment/:id", function (req, res) {
-    let sqlAddComm = 'INSERT INTO Commentaire (corps_Commentaire, date_Commentaire, id_Post, id_User) VALUES ("' + req.body.corps + '",NOW(),' + req.params.id + ',1);'
-    connection.query(sqlAddComm, function (error, results, fields) {
-        if (error) {
-            console.log(error);
+    let sqlAddComm = 'INSERT INTO Commentaire (corps_Commentaire, date_Commentaire, id_Post, id_User) VALUES ("' + req.body.corps + '",date(\'now\'),' + req.params.id + ',1);'
+    db.serialize(()=>{
+        db.all(sqlAddComm, function (err,row) {
+        if (err) {
+            console.log(err.message);
             return;
         }
         res.redirect("/read/" + req.params.id);
-    });
+    })
+    })
 });
 
 //Test unitaire 
