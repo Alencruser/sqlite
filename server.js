@@ -21,7 +21,7 @@ app.set('view engine', 'slm');
 
 // Définition de la route racine
 app.get("/", function (req, res) {
-    //recup de la liste des posts ( a changer )
+    //recup de la liste des posts changé
     let sqlListPost = "SELECT titre,corps, date_Post AS date_formated,id_Post FROM Post ORDER BY id_Post DESC";
     db.serialize(() => {
         db.all(sqlListPost, (err, row) => {
@@ -42,7 +42,7 @@ app.get("/", function (req, res) {
     });
 });
 
-// Suppression des posts ( a changer)
+// Suppression des posts changé
 app.post("/", function (req, res) {
     console.log('del: ' + req.body.del);
     if (req.body.del) {
@@ -77,6 +77,7 @@ app.get("/addpost", function (req, res) {
 // Ajout d un post ( a changer)
 
 app.post("/addpost", function (req, res) {
+
     /*console.log(req.body.titre);
     console.log(req.body.corps);*/
     let sqlCreatePost = 'INSERT INTO Post (titre,corps,date_Post,id_User) VALUES("' + req.body.titre + '","' + req.body.corps + '",date(\'now\'),1)';
@@ -121,36 +122,37 @@ module.exports = gimme; */
 //Si on clique sur un post, on l'affiche dans la nouvelle page "read" ( a changer )
 app.get('/read/:id', function (req, res) {
     console.log(req.params);
-    let sqlAffPost = "SELECT titre,corps,DATE_FORMAT(date_Post,'%d/%m/%Y') AS date_formated,id_Post FROM Post WHERE id_Post = " + req.params.id;
-    let sqlAffComm = "SELECT corps_Commentaire,DATE_FORMAT(date_Commentaire,'%d/%m/%Y') AS datec_formated, id_Commentaire FROM Commentaire WHERE id_Post = " + req.params.id;
-    connection.query(sqlAffPost, function select(error, resultp, fields) {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        if (resultp.length > 0) {
-            connection.query(sqlAffComm, function select(error, resultc, fields) {
-                if (error) {
-                    console.log(error);
-                    return;
-                }
-                if (resultc.length > 0) {
-                    res.render("read", {
-                        post: resultp,
-                        comments: resultc
-                    });
-                    return (resultc);
-                } else {
-                    res.render("read", {
-                        post: resultp
-                    });
-                }
+    let sqlAffPost = "SELECT titre,corps,date_Post AS date_formated,id_Post FROM Post WHERE id_Post = " + req.params.id;
+    let sqlAffComm = "SELECT corps_Commentaire,date_Commentaire AS datec_formated, id_Commentaire FROM Commentaire WHERE id_Post = " + req.params.id;
+    db.serialize(() => {
+        db.all(sqlAffPost, (err, resultp) => {
+            if (err) {
+                console.error(err.message);
+                return;
+            }
+            db.serialize(() => {
+                db.all(sqlAffComm, (err, resultc) => {
+                    if (err) {
+                        console.error(err.message);
+                        return;
+                    }
+                    if (resultc.length > 0) {
+                        res.render("read", {
+                            post: resultp,
+                            comments: resultc
+                        });
+                        return (resultc);
+                    } else {
+                        res.render("read", {
+                            post: resultp
+                        });
+                    }
+
+                });
             });
-        } else {
-            console.log("Pas de données");
-            res.render('index');
-        }
+        });
     });
+
 });
 
 // Ouverture de la connexion mysql
