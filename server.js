@@ -172,6 +172,6 @@ connection.end(function (err) {
 });*/
 
 // Lancement du serveur
-const server = app.listen(3000, (req, res) =>
+const server = app.listen(process.env.PORT || 3000, (req, res) =>
     console.log('Server Ready')
 );
